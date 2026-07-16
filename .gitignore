@@ -1,0 +1,15 @@
+.env
+voice_log.txt
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.idea/
+venv/
+*.egg-info/
+dist/
+static/icons/
+*.mp3
+*.wav
+*.m4a
+*.webm
