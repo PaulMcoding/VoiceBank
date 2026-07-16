@@ -2,140 +2,217 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VoiceBank</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="/static/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="VoiceBank">
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#ffffff">
 
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<header class="app-header">
-  <div class="header-inner">
-    <span class="logo" aria-label="VoiceBank">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2"/>
-        <path d="M10 10v8M14 7v14M18 10v8" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+<a href="#main-content" class="skip-link">Skip to board</a>
+
+<!-- ── Setup screen ──────────────────────────────────────────────────── -->
+<div id="setup-screen" class="screen">
+
+  <header class="setup-header">
+    <div class="setup-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0284c7"/>
+        <path d="M9 12v8M16 8v16M23 12v8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
-      VoiceBank
-    </span>
-    <button class="privacy-toggle" aria-expanded="false" aria-controls="privacy-notice"
-            onclick="togglePrivacy(this)">Privacy &amp; Data</button>
-  </div>
+      <span>VoiceBank</span>
+    </div>
+    <button class="setup-privacy-btn" aria-expanded="false"
+            aria-controls="privacy-notice" onclick="togglePrivacy(this)">
+      Privacy &amp; Data
+    </button>
+  </header>
 
   <div id="privacy-notice" class="privacy-notice" hidden>
-    <strong>What happens to your voice?</strong>
-    Your audio sample is sent to ElevenLabs to create a temporary voice clone.
-    We store only a voice ID for this session — never the raw audio.
-    Your clone is <strong>deleted automatically</strong> when you close this tab or tap
-    "Delete my voice". You can also remove it from your ElevenLabs account directly.
-    <a href="https://elevenlabs.io/privacy" target="_blank" rel="noopener">ElevenLabs Privacy Policy ↗</a>
+    <p>
+      <strong>What happens to your voice?</strong>
+      Your audio sample is sent directly to ElevenLabs — we never save it.
+      Only a session ID is stored. Your voice clone is <strong>deleted automatically</strong>
+      when you close this tab or tap "End session".
+      <a href="https://elevenlabs.io/privacy" target="_blank" rel="noopener">ElevenLabs Privacy Policy ↗</a>
+    </p>
   </div>
-</header>
 
-<main id="app">
+  <main class="setup-main" aria-labelledby="setup-heading">
+    <h1 id="setup-heading" tabindex="-1">Set up your voice</h1>
+    <p class="setup-sub">
+      Record or upload a short voice sample. Your clone is deleted automatically when the session ends.
+    </p>
 
-  <!-- ── Upload state ──────────────────────────────────────────────── -->
-  <section id="upload-section" class="section" aria-label="Upload your voice sample">
-    <div class="upload-card">
-      <h1>Speak in your own voice</h1>
-      <p class="subtitle">
-        Upload a 30-second voice sample to create your personal communication board.
-        Your clone is deleted automatically when you're done.
-      </p>
+    <!-- File upload -->
+    <div class="upload-zone" id="drop-zone" role="button" tabindex="0"
+         aria-label="Upload audio file — click or press Enter to browse"
+         ondragover="event.preventDefault()" ondrop="handleDrop(event)"
+         onclick="document.getElementById('audio-input').click()"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('audio-input').click()}">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <path d="M20 8v18M14 20l6 6 6-6" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="8" y="30" width="24" height="3" rx="1.5" fill="#bae6fd"/>
+      </svg>
+      <strong>Upload a voice sample</strong>
+      <span>.wav · .mp3 · .m4a · .webm</span>
+      <input type="file" id="audio-input" accept="audio/*" tabindex="-1"
+             aria-hidden="true" onchange="handleFileSelect(this)">
+    </div>
 
-      <div class="upload-area" id="drop-zone" role="button" tabindex="0"
-           aria-label="Drop audio file here or click to browse"
-           ondragover="event.preventDefault()" ondrop="handleDrop(event)"
-           onclick="document.getElementById('audio-input').click()"
-           onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('audio-input').click()">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <circle cx="24" cy="24" r="22" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 3"/>
-          <path d="M24 16v12M20 24l4 4 4-4" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="14" y="34" width="20" height="3" rx="1.5" fill="#6366f1" opacity="0.4"/>
+    <div class="setup-divider" aria-hidden="true">or</div>
+
+    <button class="btn-record" id="record-btn"
+            aria-pressed="false"
+            aria-describedby="record-hint">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="7" y="2" width="6" height="11" rx="3" fill="currentColor"/>
+        <path d="M3 10a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="17" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span id="record-label">Record Voice Sample</span>
+    </button>
+    <p id="record-hint" class="record-hint">Press once to start, press again to stop.</p>
+
+    <button class="btn-practice" onclick="startPracticeMode()">
+      Try with a sample voice — no recording needed
+    </button>
+  </main>
+
+</div>
+
+<!-- ── Cloning screen ─────────────────────────────────────────────────── -->
+<div id="cloning-screen" class="screen hidden" aria-labelledby="cloning-heading">
+  <div class="cloning-card">
+    <div class="spinner" role="img" aria-label="Loading"></div>
+    <h2 id="cloning-heading" tabindex="-1">Setting up your voice…</h2>
+    <p id="clone-status" aria-live="polite">Sending sample to ElevenLabs</p>
+    <div class="precache-bar" role="progressbar"
+         aria-valuemin="0" aria-valuemax="{{ phrases|length }}"
+         aria-valuenow="0" aria-label="Phrase preparation progress"
+         id="precache-bar">
+      <div class="precache-fill" id="precache-fill"></div>
+    </div>
+    <p class="precache-label" id="precache-label" aria-live="polite">Preparing phrases…</p>
+  </div>
+</div>
+
+<!-- ── Board screen ───────────────────────────────────────────────────── -->
+<div id="board-screen" class="screen hidden" id="main-content">
+
+  <!-- Output bar — shows what was spoken, like a real AAC device display -->
+  <div class="output-bar" role="region" aria-label="Speech output display">
+    <div class="output-text" id="output-text">
+      <span class="output-placeholder" id="output-placeholder">Tap a phrase to speak</span>
+    </div>
+    <div class="output-actions">
+      <button class="output-replay" id="output-replay" disabled
+              aria-label="Replay last phrase" onclick="replayLast()">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M4 4v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="drop-label">Drop audio file here</span>
-        <span class="drop-sub">or click to browse — .wav, .mp3, .m4a, .webm</span>
-        <input type="file" id="audio-input" accept="audio/*" aria-hidden="true"
-               onchange="handleFileSelect(this)">
-      </div>
-
-      <div class="or-divider"><span>or</span></div>
-
-      <button class="btn-record" id="record-btn" aria-label="Hold to record voice sample"
-              onmousedown="startRecording()" ontouchstart="startRecording()"
-              onmouseup="stopRecording()" ontouchend="stopRecording()">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="7" y="2" width="6" height="11" rx="3" fill="currentColor"/>
-          <path d="M3 10a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <line x1="10" y1="17" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Hold to Record
+        Replay
       </button>
-
-      <div class="practice-row">
-        <span>Want to try first?</span>
-        <button class="btn-practice" onclick="startPracticeMode()"
-                aria-label="Try with a sample voice — no cloning needed">
-          Use a sample voice
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Cloning state ─────────────────────────────────────────────── -->
-  <section id="cloning-section" class="section hidden" aria-label="Cloning your voice" aria-live="polite">
-    <div class="cloning-card">
-      <div class="spinner" aria-hidden="true"></div>
-      <h2>Cloning your voice…</h2>
-      <p id="clone-status">Sending sample to ElevenLabs</p>
-      <div class="precache-bar" role="progressbar" aria-valuemin="0"
-           aria-valuemax="{{ phrases|length }}" aria-valuenow="0" id="precache-bar">
-        <div class="precache-fill" id="precache-fill"></div>
-      </div>
-      <p class="precache-label" id="precache-label">Preparing phrases…</p>
-    </div>
-  </section>
-
-  <!-- ── Board state ───────────────────────────────────────────────── -->
-  <section id="board-section" class="section hidden" aria-label="Communication board">
-
-    <div class="board-header">
-      <span class="voice-badge" id="voice-badge" aria-live="polite">Your voice is active</span>
-      <button class="btn-delete" id="delete-btn" onclick="deleteVoice()"
-              aria-label="Delete my voice clone and return to start">
+      <button class="output-delete" onclick="deleteVoice()"
+              aria-label="End session and delete voice clone">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M2 4h12M6 4V2h4v2M5 4l1 9h4l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Delete my voice
+        End session
       </button>
     </div>
+  </div>
 
-    <div class="phrase-grid" role="grid" aria-label="Phrase buttons">
-      {% for phrase in phrases %}
-      <button class="phrase-btn" role="gridcell"
-              data-phrase="{{ phrase }}"
-              aria-label="Say: {{ phrase }}">
-        {{ phrase }}
-      </button>
-      {% endfor %}
+  <!-- Board tabs -->
+  <div class="board-tabs" role="tablist" aria-label="Board mode">
+    <button id="tab-phrases" class="board-tab" role="tab"
+            aria-selected="true" aria-controls="panel-phrases"
+            onclick="switchTab('phrases')">Phrases</button>
+    <button id="tab-builder" class="board-tab" role="tab"
+            aria-selected="false" aria-controls="panel-builder"
+            onclick="switchTab('builder')">Build</button>
+    <button id="tab-type" class="board-tab" role="tab"
+            aria-selected="false" aria-controls="panel-type"
+            onclick="switchTab('type')">Type</button>
+  </div>
+
+  <main id="main-content" class="board-main">
+
+    <!-- Panel: Phrases -->
+    <div id="panel-phrases" class="board-panel" role="tabpanel" aria-labelledby="tab-phrases">
+      <div class="phrase-grid" role="group" aria-label="Speak a phrase">
+
+        <!-- Hardcoded with emoji so we can have display vs. spoken text -->
+        <button class="phrase-btn" data-phrase="I'm hungry"    aria-label="Say: I'm hungry">
+          <span class="phrase-emoji" aria-hidden="true">🍽️</span>
+          <span class="phrase-text">I'm hungry</span>
+        </button>
+        <button class="phrase-btn" data-phrase="I'm thirsty"   aria-label="Say: I'm thirsty">
+          <span class="phrase-emoji" aria-hidden="true">💧</span>
+          <span class="phrase-text">I'm thirsty</span>
+        </button>
+        <button class="phrase-btn" data-phrase="I need help"   aria-label="Say: I need help">
+          <span class="phrase-emoji" aria-hidden="true">🆘</span>
+          <span class="phrase-text">I need help</span>
+        </button>
+        <button class="phrase-btn" data-phrase="Call the nurse" aria-label="Say: Call the nurse">
+          <span class="phrase-emoji" aria-hidden="true">🔔</span>
+          <span class="phrase-text">Call the nurse</span>
+        </button>
+        <button class="phrase-btn" data-phrase="Yes"           aria-label="Say: Yes">
+          <span class="phrase-emoji" aria-hidden="true">✅</span>
+          <span class="phrase-text">Yes</span>
+        </button>
+        <button class="phrase-btn" data-phrase="No"            aria-label="Say: No">
+          <span class="phrase-emoji" aria-hidden="true">🚫</span>
+          <span class="phrase-text">No</span>
+        </button>
+        <button class="phrase-btn" data-phrase="I love you"    aria-label="Say: I love you">
+          <span class="phrase-emoji" aria-hidden="true">❤️</span>
+          <span class="phrase-text">I love you</span>
+        </button>
+        <button class="phrase-btn" data-phrase="I'm in pain"   aria-label="Say: I'm in pain">
+          <span class="phrase-emoji" aria-hidden="true">😣</span>
+          <span class="phrase-text">I'm in pain</span>
+        </button>
+
+      </div>
     </div>
 
-    <div class="freetext-section" aria-label="Say anything">
-      <label for="freetext-input" class="freetext-label">Say anything:</label>
-      <div class="freetext-row">
-        <input type="text" id="freetext-input" maxlength="500"
-               placeholder="Type something…"
-               aria-label="Type text to speak"
-               onkeydown="if(event.key==='Enter')speakFreeText()">
-        <button class="btn-speak" onclick="speakFreeText()" aria-label="Speak typed text">
+    <!-- Panel: Build a sentence -->
+    <div id="panel-builder" class="board-panel hidden" role="tabpanel" aria-labelledby="tab-builder">
+      <div class="builder-controls" role="group" aria-label="Sentence controls">
+        <button class="builder-action-btn" onclick="removeLastWord()">← Undo</button>
+        <button class="builder-action-btn" onclick="clearBuiltSentence()">Clear</button>
+        <button class="builder-speak-btn" id="speak-built-btn" disabled
+                onclick="speakBuiltSentence()">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M3 10l14-7-6 7 6 7-14-7z" fill="currentColor"/>
+          </svg>
+          Speak
+        </button>
+      </div>
+      <div id="word-bank" class="word-bank" role="group" aria-label="Word bank"></div>
+    </div>
+
+    <!-- Panel: Type anything -->
+    <div id="panel-type" class="board-panel hidden" role="tabpanel" aria-labelledby="tab-type">
+      <div class="type-panel">
+        <label for="freetext-input" class="type-label">Type what you want to say:</label>
+        <textarea id="freetext-input" rows="3" maxlength="500"
+                  placeholder="Type here…"
+                  aria-describedby="freetext-hint"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();speakFreeText()}"></textarea>
+        <p id="freetext-hint" class="type-hint">Press Enter to speak, Shift+Enter for new line.</p>
+        <button class="type-speak-btn" onclick="speakFreeText()">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M3 10l14-7-6 7 6 7-14-7z" fill="currentColor"/>
           </svg>
@@ -144,12 +221,15 @@
       </div>
     </div>
 
-    <div aria-live="polite" aria-atomic="true" class="sr-only" id="status-announce"></div>
-  </section>
+  </main>
 
-</main>
+  <!-- Voice mode badge — small, unobtrusive -->
+  <div class="voice-status" role="status" id="voice-badge">Your voice</div>
+
+</div>
 
 <div id="toast" class="toast" role="alert" aria-live="assertive" hidden></div>
+<div aria-live="assertive" aria-atomic="true" class="sr-only" id="status-announce"></div>
 
 <script>
   const PRACTICE_VOICE_ID = "{{ practice_voice_id }}";

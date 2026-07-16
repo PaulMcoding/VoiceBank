@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: voicebank
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    envVars:
+      - key: ELEVENLABS_API_KEY
+        sync: false                      # set manually in Render dashboard
+      - key: FLASK_SECRET_KEY
+        sync: false                      # set manually in Render dashboard
+      - key: PRACTICE_VOICE_ID
+        value: 21m00Tcm4TlvDq8ikWAM     # Rachel — default sample voice
+      - key: FLASK_ENV
+        value: production

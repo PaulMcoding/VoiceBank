@@ -1,5 +1,6 @@
 import os
 import json
+import mimetypes
 import requests
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -26,7 +27,7 @@ def create_clone(audio_bytes: bytes, filename: str, name: str = "VoiceBank-sessi
     resp = requests.post(
         f"{BASE_URL}/voices/add",
         headers={"xi-api-key": API_KEY},
-        files=[("files", (filename, audio_bytes, "audio/wav"))],
+        files=[("files", (filename, audio_bytes, _mime(filename)))],
         data={"name": name, "description": "VoiceBank AAC session clone — ephemeral"},
         timeout=30,
     )
@@ -74,6 +75,19 @@ def list_voices() -> list:
     )
     resp.raise_for_status()
     return resp.json()["voices"]
+
+
+def _mime(filename: str) -> str:
+    """Return the correct MIME type for common audio formats."""
+    ext = os.path.splitext(filename)[1].lower()
+    return {
+        ".m4a": "audio/mp4",
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/wav",
+        ".webm": "audio/webm",
+        ".ogg": "audio/ogg",
+        ".flac": "audio/flac",
+    }.get(ext, mimetypes.guess_type(filename)[0] or "audio/mpeg")
 
 
 def _log(action: str, voice_id: str, success: bool = True, name: str = ""):

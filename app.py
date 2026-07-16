@@ -53,8 +53,23 @@ def clone():
         )
         session["voice_id"] = voice_id
         _precache_phrases(voice_id)
-        return jsonify({"voice_id": voice_id, "cached": True})
+        return jsonify({"voice_id": voice_id, "cached": True, "mode": "clone"})
     except requests.HTTPError as e:
+        # Fall back to practice voice if account doesn't have IVC (free tier)
+        body = {}
+        try:
+            body = e.response.json()
+        except Exception:
+            pass
+        code = (body.get("detail") or {}).get("code", "")
+        if code == "paid_plan_required":
+            _precache_phrases(PRACTICE_VOICE_ID)
+            return jsonify({
+                "voice_id": PRACTICE_VOICE_ID,
+                "cached": True,
+                "mode": "practice",
+                "notice": "Voice cloning requires a paid plan — using a sample voice instead.",
+            })
         return jsonify({"error": f"ElevenLabs error: {e.response.status_code}"}), 502
 
 

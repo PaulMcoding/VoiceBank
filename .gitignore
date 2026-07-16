@@ -8,7 +8,7 @@ __pycache__/
 venv/
 *.egg-info/
 dist/
-static/icons/
+# static/icons/ — committed so PWA icons are available on deploy
 *.mp3
 *.wav
 *.m4a
