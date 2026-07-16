@@ -1,3 +1,5 @@
+https://voicebank-pexw.onrender.com
+
 # VoiceBank
 
 VoiceBank is a browser-based AAC (augmentative and alternative communication) board that lets someone speak common phrases — and free text — in their own cloned voice rather than a generic synthesised one. You upload a short voice sample, ElevenLabs clones it, and from that point tapping "I need help" or "I'm in pain" plays back in your own voice. It's built on the ElevenLabs Instant Voice Clone API as a hands-on way to explore what that API can do in an accessibility context. The use case it's modelled on is voice banking for people with ALS, MND, or other conditions that progressively take away the ability to speak — recording your voice while you still have it so you can keep using it later.
