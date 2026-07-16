@@ -31,7 +31,7 @@ VoiceBank is a lightweight, open, DIY exploration of the same underlying idea â€
 
 ## Demo
 
-<!-- TODO: add demo GIF here -->
+https://voicebank-pexw.onrender.com [allow this to boot up before using]
 
 ---
 
