@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>VoiceBank</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VoiceBank">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="theme-color" content="#0f172a">
+
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <span class="logo" aria-label="VoiceBank">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2"/>
+        <path d="M10 10v8M14 7v14M18 10v8" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      VoiceBank
+    </span>
+    <button class="privacy-toggle" aria-expanded="false" aria-controls="privacy-notice"
+            onclick="togglePrivacy(this)">Privacy &amp; Data</button>
+  </div>
+
+  <div id="privacy-notice" class="privacy-notice" hidden>
+    <strong>What happens to your voice?</strong>
+    Your audio sample is sent to ElevenLabs to create a temporary voice clone.
+    We store only a voice ID for this session — never the raw audio.
+    Your clone is <strong>deleted automatically</strong> when you close this tab or tap
+    "Delete my voice". You can also remove it from your ElevenLabs account directly.
+    <a href="https://elevenlabs.io/privacy" target="_blank" rel="noopener">ElevenLabs Privacy Policy ↗</a>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ── Upload state ──────────────────────────────────────────────── -->
+  <section id="upload-section" class="section" aria-label="Upload your voice sample">
+    <div class="upload-card">
+      <h1>Speak in your own voice</h1>
+      <p class="subtitle">
+        Upload a 30-second voice sample to create your personal communication board.
+        Your clone is deleted automatically when you're done.
+      </p>
+
+      <div class="upload-area" id="drop-zone" role="button" tabindex="0"
+           aria-label="Drop audio file here or click to browse"
+           ondragover="event.preventDefault()" ondrop="handleDrop(event)"
+           onclick="document.getElementById('audio-input').click()"
+           onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('audio-input').click()">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 3"/>
+          <path d="M24 16v12M20 24l4 4 4-4" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="14" y="34" width="20" height="3" rx="1.5" fill="#6366f1" opacity="0.4"/>
+        </svg>
+        <span class="drop-label">Drop audio file here</span>
+        <span class="drop-sub">or click to browse — .wav, .mp3, .m4a, .webm</span>
+        <input type="file" id="audio-input" accept="audio/*" aria-hidden="true"
+               onchange="handleFileSelect(this)">
+      </div>
+
+      <div class="or-divider"><span>or</span></div>
+
+      <button class="btn-record" id="record-btn" aria-label="Hold to record voice sample"
+              onmousedown="startRecording()" ontouchstart="startRecording()"
+              onmouseup="stopRecording()" ontouchend="stopRecording()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="7" y="2" width="6" height="11" rx="3" fill="currentColor"/>
+          <path d="M3 10a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="10" y1="17" x2="10" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Hold to Record
+      </button>
+
+      <div class="practice-row">
+        <span>Want to try first?</span>
+        <button class="btn-practice" onclick="startPracticeMode()"
+                aria-label="Try with a sample voice — no cloning needed">
+          Use a sample voice
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Cloning state ─────────────────────────────────────────────── -->
+  <section id="cloning-section" class="section hidden" aria-label="Cloning your voice" aria-live="polite">
+    <div class="cloning-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Cloning your voice…</h2>
+      <p id="clone-status">Sending sample to ElevenLabs</p>
+      <div class="precache-bar" role="progressbar" aria-valuemin="0"
+           aria-valuemax="{{ phrases|length }}" aria-valuenow="0" id="precache-bar">
+        <div class="precache-fill" id="precache-fill"></div>
+      </div>
+      <p class="precache-label" id="precache-label">Preparing phrases…</p>
+    </div>
+  </section>
+
+  <!-- ── Board state ───────────────────────────────────────────────── -->
+  <section id="board-section" class="section hidden" aria-label="Communication board">
+
+    <div class="board-header">
+      <span class="voice-badge" id="voice-badge" aria-live="polite">Your voice is active</span>
+      <button class="btn-delete" id="delete-btn" onclick="deleteVoice()"
+              aria-label="Delete my voice clone and return to start">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 4h12M6 4V2h4v2M5 4l1 9h4l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Delete my voice
+      </button>
+    </div>
+
+    <div class="phrase-grid" role="grid" aria-label="Phrase buttons">
+      {% for phrase in phrases %}
+      <button class="phrase-btn" role="gridcell"
+              data-phrase="{{ phrase }}"
+              aria-label="Say: {{ phrase }}">
+        {{ phrase }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <div class="freetext-section" aria-label="Say anything">
+      <label for="freetext-input" class="freetext-label">Say anything:</label>
+      <div class="freetext-row">
+        <input type="text" id="freetext-input" maxlength="500"
+               placeholder="Type something…"
+               aria-label="Type text to speak"
+               onkeydown="if(event.key==='Enter')speakFreeText()">
+        <button class="btn-speak" onclick="speakFreeText()" aria-label="Speak typed text">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M3 10l14-7-6 7 6 7-14-7z" fill="currentColor"/>
+          </svg>
+          Speak
+        </button>
+      </div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="status-announce"></div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="alert" aria-live="assertive" hidden></div>
+
+<script>
+  const PRACTICE_VOICE_ID = "{{ practice_voice_id }}";
+  const TOTAL_PHRASES = {{ phrases|length }};
+</script>
+<script src="/static/app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/sw.js");
+  }
+</script>
+</body>
+</html>
